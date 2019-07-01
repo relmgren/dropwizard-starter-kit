@@ -1,5 +1,0 @@
-googleCredentials:
-  password:
-    type: plaintext
-    password: test-token
-  expirationTimeMillis: 1000

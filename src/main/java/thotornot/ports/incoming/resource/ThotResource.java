@@ -1,22 +1,29 @@
 package thotornot.ports.incoming.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.dropwizard.lifecycle.Managed;
-import org.apache.log4j.Logger;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import thotornot.application.ThotOrNotService;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import javax.annotation.security.PermitAll;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 
-import static java.lang.String.format;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
-@Path("/thot/{thot}/{thot2}")
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
-public class ThotResource implements Managed {
+@Api("Thot Or Not Api")
+@Path("/thot")
+@Produces(APPLICATION_JSON)
+@Consumes(APPLICATION_JSON)
+public class ThotResource {
 
-    private static final Logger LOG = Logger.getLogger(ThotResource.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(ThotResource.class.getName());
     private final ThotOrNotService service;
     private final ObjectMapper objectMapper;
 
@@ -27,20 +34,16 @@ public class ThotResource implements Managed {
     }
 
     @POST
-    public Response vote(@PathParam("thot") String thot, @PathParam("thot2") String secondThot, @QueryParam("vote") String wasThot) {
-        LOG.info(format("Got post request for %s and %s, %s was the preferred", thot, secondThot, wasThot));
-
-
-        service.handle(thot, secondThot, wasThot);
-
-        return Response.ok().build();
-    }
-
-    @Override
-    public void start() throws Exception {
-    }
-
-    @Override
-    public void stop() throws Exception {
+    @PermitAll
+    public Response post(@ApiParam(required = true) String payload) {
+        LOG.info("Got post request {}", payload);
+        try {
+            PayloadDto payloadDto = objectMapper.readValue(payload, PayloadDto.class);
+            service.handle(payloadDto);
+            return Response.ok().build();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return Response.serverError().build();
     }
 }
