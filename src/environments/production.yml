@@ -1,0 +1,5 @@
+googleCredentials:
+  password:
+    type: blob-store
+    password: test-token
+  expirationTimeMillis: 1000
